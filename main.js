@@ -3,9 +3,10 @@ const app = express()
 const server = require("http").createServer(app);
 const { Server } = require("socket.io")
 const { instrument } = require('@socket.io/admin-ui')
-const events = require("events");
 const { createToken }  = require('./token')
-const {User} = require('./user')
+const { User, UserList } = require('./user')
+const { createClient } = require('redis')
+const redis = createClient()
 
 const io = new Server(server, {
     cors: {
@@ -14,9 +15,6 @@ const io = new Server(server, {
         credentials: true
     }
 })
-
-
-let users = []
 
 io.on('connection', (socket) => {
     console.log(`a user connected :${socket.conn.remoteAddress}`)
@@ -27,6 +25,8 @@ io.on('disconnect',(socket) => {
     console.log(socket);
 })
 
+
+const users = new UserList(redis)
 
 io.of("/admin").on("connection", (socket) => {
     console.log(`adminNSP:a user connected:[${socket.id}]:[${socket.conn.remoteAddress}]:`)
@@ -46,48 +46,60 @@ setInterval(() => {
     }
 }, 200)
 
+
 io.of("/game").on("connection", (socket => {
     socket.on("client-ready", (token) => {
-        for (let i=0;i<users.length; i++) {
-            let user = users[i]
-            if(user.token === token) {
-                user.addId(socket.id)
-                socket.emit("login-success", token)
-                return
-            }
+        let done = false
+        console.log(`user count:${users.length}`)
+        if(users.length > 0) {
+            users.map((user) => {
+                console.log("iterating")
+                if(user.token === token) {
+                    user.addId(socket.id)
+                    socket.emit("login-success", token)
+                    done = true
+                    console.log("using old token")
+                }
+            })
         }
 
-        createToken((token) => {
-            socket.emit("login-success", token)
-            users.push(new User(socket.id, token))
-        })
+        if(!done) {
+            createToken((token) => {
+                console.log("creating new token")
+                let user = new User(socket.id, token)
+                users.push(user)
+                socket.emit("login-success", token)
+            })
+        }
     })
 
     socket.on("disconnect", () => {
-        for (let i=0;i<users.length; i++) {
-            let user = users[i]
-            for(let j=0;j<user.ids.length;j++) {
-                let uid = user.ids[j]
-                if(uid === socket.id) {
-                    users[i].ids.splice(j, 1)
+        users.map((user, uidx) => {
+            user.ids.map((id, idx) => {
+                if(id === socket.id) {
+                    users[uidx].ids.splice(idx, 1)
                 }
+            })
+
+            if(user.ids.length === 0) {
+                users.splice(uidx, 1)
             }
-            if (users[i].ids.length === 0) {
-                users.splice(i, 1)
-            }
-        }
+        })
     })
 
     socket.on("logout", (token) => {
-        for(let i=0; i < users.length;i++) {
-            let user = users[i]
+        let done = false
+        users.map((user, index) => {
             if(user.token === token) {
-                users.splice(i, 1)
+                users.splice(index, 1)
                 socket.emit("logout-success")
-                break
+                done = true
             }
+        })
+
+        if (!done) {
+            socket.emit("logout-failed")
         }
-        socket.emit("logout-failed")
     })
 
 }))

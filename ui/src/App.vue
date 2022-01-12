@@ -1,9 +1,6 @@
 <template>
   <div id="app">
     <div id="nav">
-      <div>
-        <button @click="trigger">Trigger Login Event</button>
-      </div>
       <span style="color: #dd4455">{{error}}</span>
       <div :class=" connected ? 'status good' : 'status'"></div>
       <router-link to="/">Home</router-link> |
@@ -27,14 +24,6 @@
         stats:{
           users:[]
         }
-      }
-    },
-    methods:{
-      trigger() {
-        this.socket.emit("test", {
-          name:"mirzat",
-          what:"nothing"
-        })
       }
     },
     created() {

@@ -1,3 +1,7 @@
+const {createClient} = require("redis");
+
+const redis = createClient()
+
 class User {
     token = ""
     ids = []
@@ -13,6 +17,27 @@ class User {
     }
 }
 
+class UserList {
+    constructor(store) {
+        this.store = store
+    }
+
+    getUsers() {
+        redis.getSet("")
+        this.store.get()
+    }
+
+    addUser(user) {
+
+    }
+
+    removeUser() {
+
+    }
+}
+
+
 module.exports = {
-    User
+    User,
+    UserList
 }
