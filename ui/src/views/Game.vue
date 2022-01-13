@@ -1,7 +1,11 @@
 <template>
-  <div class="game">
+  <div>
+    <h2>name: {{user.name}} <button @click="updateName">update</button> | roomID:{{roomId}}</h2>
+    <div class="game">
+
+    </div>
     <div>
-      <button v-if="loggedIn"  :disabled="!connected" @click="logout">Logout</button>
+      {{this.user}}
     </div>
   </div>
 </template>
@@ -17,6 +21,10 @@ export default {
       socket:null,
       connected: false,
       loggedIn: hasToken(),
+      roomId: null,
+      user: {
+        name:'not loaded'
+      }
     }
   },
   created() {
@@ -32,9 +40,14 @@ export default {
       this.connected = false
     })
 
-    socket.on("login-success", (token) => {
-      localStorage.setItem("token", token)
+    socket.on("login-success", (user) => {
+      localStorage.setItem("token", user.token)
+      this.user = user;
       this.loggedIn = true
+      if(!('name' in user)) {
+        let name = prompt("please input user name")
+        socket.emit("update-name", name, user.token)
+      }
     })
 
     socket.on("logout-success", () => {
@@ -42,10 +55,9 @@ export default {
       this.loggedIn = false
     })
 
-    socket.on("logout-failed", () => {
-      localStorage.removeItem("token")
-      this.loggedIn = false;
-      console.log("logout-failed");
+    socket.on("update", (user) => {
+      console.log(user);
+      this.user = user;
     })
 
     this.socket = socket
@@ -53,7 +65,16 @@ export default {
   methods: {
     logout() {
       this.socket.emit("logout", localStorage.getItem("token"))
+    },
+
+    updateName() {
+      let name = prompt("please input a name")
+      let token = localStorage.getItem("token")
+      this.socket.emit("update-name", name, token)
     }
+  },
+  mounted() {
+    this.roomId = this.$route.query.room
   }
 }
 </script>

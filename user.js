@@ -72,6 +72,26 @@ class UserList {
         })
     }
 
+
+    /**
+     * @param token {String}
+     */
+    getUserWithToken(token) {
+        return new Promise((resolve, reject) => {
+            (async () => {
+                let res = await this.store.HGETALL(getUserKey(token))
+                let user = {
+                    ids: res.ids,
+                    token: token
+                }
+
+                if('name' in res) {
+                    user.name = res.name
+                }
+                resolve(user)
+            })()
+        })
+    }
     /**
      * @param user {User}
      * @returns {Promise<string>}
@@ -79,18 +99,21 @@ class UserList {
     addUser(user) {
         return new Promise((resolve, reject) => {
             (async () => {
-                if (user.token === null) {
+                if (!user.token || user.token === 'undefined') {
                     user.token = await createToken()
                 }
+
                 let key = getUserKey(user.token)
                 let exists = await this.store.EXISTS(key)
+                await this.rememberID(user)
                 if(!exists) {
                     await this.store.HSET(key, {ids: 1})
-                    return resolve(user.token)
+                    let newUser = await this.getUserWithToken(user.token)
+                    return resolve(newUser)
                 }
                 await this.store.HINCRBY(key, "ids", 1)
-                await this.rememberID(user)
-                return resolve(user.token)
+                let newUser = await this.getUserWithToken(user.token)
+                return resolve(newUser)
             })()
         })
 
@@ -123,7 +146,23 @@ class UserList {
             await this.store.set(getSessionKey(user.id), user.token)
         })()
     }
+
+    /**
+     * @param token
+     * @param name
+     * @returns {Promise<User>}
+     */
+    updateUserName(token, name) {
+        return (async () => {
+            await this.store.HSET(getUserKey(token), "name", name)
+            return await this.getUserWithToken(token)
+        })()
+    }
 }
+
+/**
+ * @type {{User: User, UserList: UserList}}
+ */
 module.exports = {
     User,
     UserList

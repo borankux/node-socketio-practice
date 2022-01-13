@@ -3,8 +3,6 @@
     <div id="nav">
       <span style="color: #dd4455">{{error}}</span>
       <div :class=" connected ? 'status good' : 'status'"></div>
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link> |
       <router-link to="/game">Game</router-link>
       <div class="floating-bar">
         <div v-for="(user,idx) of stats.users" v-bind:key="idx">{{user}}</div>

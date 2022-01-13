@@ -1,0 +1,11 @@
+# Todo
+- [x] Identify User with a token
+- [ ] Logging out
+- [ ] Giving the user a Name
+- [ ] Changing the name
+- [ ] Creating a room/game
+- [ ] Letting other people join the room/game
+- [ ] Join a room with room id
+- [ ] Syncing Room State
+- [ ] Syncing Player State
+- [ ] Game Threading

@@ -11,6 +11,7 @@ const redis = createClient({
     url:"redis://redis:6379"
 })
 redis.connect()
+
 const io = new Server(server, serverConfig)
 instrument(io,{
     auth: false
@@ -40,8 +41,9 @@ io.of("/admin").on("connection", (socket) => {
 
 io.of("/game").on("connection", (socket => {
     socket.on("client-ready", (token) => {
-        userList.addUser(new User(socket.id, token)).then(newToken => {
-            socket.emit("login-success", newToken)
+        userList.addUser(new User(socket.id, token)).then(newUser => {
+            console.log("new user:", newUser)
+            socket.emit("login-success", newUser)
         })
     })
 
@@ -50,9 +52,16 @@ io.of("/game").on("connection", (socket => {
     })
 
     socket.on("logout", (token) => {
-        console.log(token);
+        //
+    })
+
+    socket.on("update-name",(name, token) =>{
+        userList.updateUserName(token, name).then((user) => {
+            socket.emit("update", user)
+        })
     })
 }))
 
 io.listen(3000)
 console.log("listening on http://localhost:3000")
+

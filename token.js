@@ -5,10 +5,8 @@ const createToken = async () => {
             resolve(token)
         });
     })
-
 }
 
 module.exports = {
     createToken
 }
-
