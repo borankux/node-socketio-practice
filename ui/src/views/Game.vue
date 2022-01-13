@@ -1,17 +1,23 @@
 <template>
   <div>
-    <h2>name: {{user.name}} <button @click="updateName">update</button> | roomID:{{roomId}}</h2>
+    <h2>name: {{user.name}} <a href="#" style="font-size: 0.9em;" @click="updateName">update</a></h2>
     <div class="game">
 
-    </div>
-    <div>
-      {{this.user}}
+      <div  v-if="fullyRegistered" class="join-control">
+        <div>
+          <input type="text" v-model="roomId">
+          <button @click="joinARoom">Join a Room</button>
+        </div>
+        <div>
+          <button @click="createARoom">Create a Room</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import {hasToken} from "../utils/room";
+import {hasToken} from "@/utils/room";
 
 export default {
   name: "Game",
@@ -25,6 +31,20 @@ export default {
       user: {
         name:'not loaded'
       }
+    }
+  },
+  computed:{
+    fullyRegistered: function() {
+      console.log(this.user);
+      if(this.user.name === "not loaded") {
+        return false
+      }
+
+      if(!this.user.token) {
+        return false
+      }
+
+      return true
     }
   },
   created() {
@@ -44,7 +64,7 @@ export default {
       localStorage.setItem("token", user.token)
       this.user = user;
       this.loggedIn = true
-      if(!('name' in user)) {
+      if(!user["name"]) {
         let name = prompt("please input user name")
         socket.emit("update-name", name, user.token)
       }
@@ -69,12 +89,19 @@ export default {
 
     updateName() {
       let name = prompt("please input a name")
-      let token = localStorage.getItem("token")
-      this.socket.emit("update-name", name, token)
+      if(name) {
+        let token = localStorage.getItem("token")
+        this.socket.emit("update-name", name, token)
+      }
+    },
+
+    joinARoom() {
+
+    },
+
+    createARoom() {
+
     }
-  },
-  mounted() {
-    this.roomId = this.$route.query.room
   }
 }
 </script>

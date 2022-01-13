@@ -8,7 +8,7 @@ const serverConfig = require('./config')
 const {UserList, User} = require("./user");
 
 const redis = createClient({
-    url:"redis://redis:6379"
+    url:"redis://localhost:6379"
 })
 redis.connect()
 
@@ -42,7 +42,6 @@ io.of("/admin").on("connection", (socket) => {
 io.of("/game").on("connection", (socket => {
     socket.on("client-ready", (token) => {
         userList.addUser(new User(socket.id, token)).then(newUser => {
-            console.log("new user:", newUser)
             socket.emit("login-success", newUser)
         })
     })
@@ -64,4 +63,3 @@ io.of("/game").on("connection", (socket => {
 
 io.listen(3000)
 console.log("listening on http://localhost:3000")
-
