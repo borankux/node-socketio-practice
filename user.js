@@ -1,18 +1,40 @@
 const {createToken} = require("./token");
 
+/**
+ * @param id
+ * @returns {string}
+ */
 function getSessionKey(id) {
     return `session:${id}`
 }
 
+/**
+ * @param token
+ * @returns {string}
+ */
 function getUserKey(token) {
     return `user:${token}`
 }
 
+/**
+ * @type {string}
+ */
 const UserMatchKey = "user:*"
 
+/**
+ * @class User
+ */
 class User {
+    /**
+     * @type {string}
+     */
     token = ""
+
+    /**
+     * @type {string}
+     */
     id = ""
+
     constructor(id, token) {
         this.token = token;
         this.id = id
@@ -20,10 +42,21 @@ class User {
 }
 
 class UserList {
+    /**
+     * @type <S=Record<string, never> extends RedisScripts>(options?: Omit<RedisClientOptions<never, S>, "modules">) => RedisClientType<typeof modules, S>
+     */
+    store = null
+
+    /**
+     * @param store <S=Record<string, never> extends RedisScripts>(options?: Omit<RedisClientOptions<never, S>, "modules">) => RedisClientType<typeof modules, S>
+     */
     constructor(store) {
         this.store = store
     }
 
+    /**
+     * @returns {Promise<Array<User>>}
+     */
     getUsers() {
         return new Promise((resolve, reject) => {
             (async ()=> {
@@ -39,6 +72,10 @@ class UserList {
         })
     }
 
+    /**
+     * @param user {User}
+     * @returns {Promise<string>}
+     */
     addUser(user) {
         return new Promise((resolve, reject) => {
             (async () => {
@@ -59,6 +96,9 @@ class UserList {
 
     }
 
+    /**
+     * @param user {User}
+     */
     removeUser(user) {
         (async () => {
             let id = user.id
@@ -74,6 +114,10 @@ class UserList {
         })()
     }
 
+    /**
+     * @param user {User}
+     * @returns {Promise<void>}
+     */
     rememberID(user) {
         return (async () => {
             await this.store.set(getSessionKey(user.id), user.token)
