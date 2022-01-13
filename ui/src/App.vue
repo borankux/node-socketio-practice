@@ -7,7 +7,7 @@
       <router-link to="/about">About</router-link> |
       <router-link to="/game">Game</router-link>
       <div class="floating-bar">
-        <div v-for="(user,idx) of stats.users" v-bind:key="idx">{{user.token.substring(0, 15)}}:({{user.ids.length}})</div>
+        <div v-for="(user,idx) of stats.users" v-bind:key="idx">{{user}}</div>
       </div>
     </div>
     <router-view/>
@@ -86,7 +86,8 @@
   left: 0;
   top: 0;
   background-color: #ccc;
-  width: 300px;
+  min-width: 300px;
   min-height: 200px;
+  padding: 10px;
 }
 </style>

@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: ./docker/app
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+  redis:
+    image: redis:latest
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=redis:redis:6379
+    ports:
+      - "81:8081"
